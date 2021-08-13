@@ -12,7 +12,9 @@ jobs:
       - name: shell for debug
         run: |
           echo "ANDY in shell"
-          env
+          env | sort
+          echo "ANDY event:"
+          cat $GITHUB_EVENT_PATH
 
   # Branch-based pull request
   integration-trusted:
