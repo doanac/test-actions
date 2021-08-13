@@ -6,16 +6,6 @@ on:
 name: Sync To Foundries
 
 jobs:
-  run-always:
-    runs-on: ubuntu-latest
-    steps:
-      - name: shell for debug
-        run: |
-          echo "ANDY in shell"
-          env | sort
-          echo "ANDY event:"
-          cat $GITHUB_EVENT_PATH
-
   # Branch-based pull request
   integration-trusted:
     runs-on: ubuntu-latest
@@ -25,7 +15,7 @@ jobs:
     - name: Branch based PR checkout
       uses: actions/checkout@v2
 
-    - name: Do something
+    - name: Sync with source.foundries.io
       run: |
         echo "ANDY Doing something"
         git log -1
@@ -46,8 +36,38 @@ jobs:
       with:
         ref: 'refs/pull/${{ github.event.client_payload.pull_request.number }}/merge'
 
-    - name: Do something2
+    - name: Sync with source.foundries.io
       run: |
         echo "ANDY Doing something"
         git log -1
         env
+
+    # Update check run called "integration-fork"
+    - uses: actions/github-script@v1
+      id: update-check-run
+      if: ${{ always() }}
+      env:
+        number: ${{ github.event.client_payload.pull_request.number }}
+        job: ${{ github.job }}
+        # Conveniently, job.status maps to https://developer.github.com/v3/checks/runs/#update-a-check-run
+        conclusion: ${{ job.status }}
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const { data: pull } = await github.pulls.get({
+            ...context.repo,
+            pull_number: process.env.number
+          });
+          const ref = pull.head.sha;
+          const { data: checks } = await github.checks.listForRef({
+            ...context.repo,
+            ref
+          });
+          const check = checks.check_runs.filter(c => c.name === process.env.job);
+          const { data: result } = await github.checks.update({
+            ...context.repo,
+            check_run_id: check[0].id,
+            status: 'completed',
+            conclusion: process.env.conclusion
+          });
+          return result;
