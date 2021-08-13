@@ -6,6 +6,14 @@ on:
 name: Sync To Foundries
 
 jobs:
+  run-always:
+    runs-on: ubuntu-latest
+    steps:
+      - name: shell for debug
+        run: |
+          echo "ANDY in shell"
+          env
+
   # Branch-based pull request
   integration-trusted:
     runs-on: ubuntu-latest
