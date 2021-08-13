@@ -1,4 +1,4 @@
-name: Ok To Test
+name: Okay To Sync
 
 on:
   issue_comment:
@@ -14,6 +14,6 @@ jobs:
       with:
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # PAT or OAuth token will also work
         issue-type: pull-request
-        commands: ok-to-test
+        commands: ok-to-sync
         named-args: true
         permission: read
